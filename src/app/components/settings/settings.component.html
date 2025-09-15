@@ -1,0 +1,111 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h2 class="h4 mb-0">Настройки тренировки</h2>
+          <button class="btn btn-sm btn-outline-light" (click)="resetSettings()" title="Сбросить настройки">
+            <i class="bi bi-arrow-clockwise"></i> Сброс
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Выбор чисел -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">Выберите числа для тренировки:</label>
+            <div class="d-flex flex-wrap gap-2">
+              @for(num of numbers; track num){
+              <button 
+                      [class]="'btn ' + (isNumberSelected(num) ? 'btn-primary' : 'btn-outline-primary')"
+                      (click)="toggleNumber(num)">
+                {{ num }}
+              </button>
+            }
+            </div>
+            <div class="mt-2">
+              <button class="btn btn-sm btn-outline-secondary me-2" (click)="selectAllNumbers()">
+                Выбрать все
+              </button>
+              <button class="btn btn-sm btn-outline-secondary" (click)="deselectAllNumbers()">
+                Сбросить
+              </button>
+            </div>
+          </div>
+
+          <!-- Режим тренировки -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">Режим тренировки:</label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="mode" 
+                     id="countMode" [value]="false" [(ngModel)]="settings.timeMode"
+                     (change)="onSettingChange()">
+              <label class="form-check-label" for="countMode">
+                По количеству задач
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="mode" 
+                     id="timeMode" [value]="true" [(ngModel)]="settings.timeMode"
+                     (change)="onSettingChange()">
+              <label class="form-check-label" for="timeMode">
+                На время (минуты)
+              </label>
+            </div>
+          </div>
+
+          <!-- Количество/Время -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">
+              {{ settings.timeMode ? 'Время тренировки (минуты):' : 'Количество задач:' }}
+            </label>
+            <input type="number" class="form-control" 
+                   [min]="1" [max]="settings.timeMode ? 60 : 100"
+                   [(ngModel)]="settings[settings.timeMode ? 'duration' : 'problemCount']"
+                   (change)="onSettingChange()">
+          </div>
+
+          <!-- Дополнительные настройки -->
+          <div class="mb-4">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" 
+                     id="singleAttempt" [(ngModel)]="settings.singleAttempt"
+                     (change)="onSettingChange()">
+              <label class="form-check-label" for="singleAttempt">
+                Только одна попытка ответа
+              </label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" 
+                     id="showAnswer" [(ngModel)]="settings.showAnswerAfterDelay"
+                     (change)="onSettingChange()">
+              <label class="form-check-label" for="showAnswer">
+                Показывать правильный ответ после задержки
+              </label>
+            </div>
+            @if(settings.showAnswerAfterDelay){
+            <div  class="mt-2">
+              <label class="form-label">Задержка (секунды):</label>
+              <input type="number" class="form-control" 
+                     [min]="1" [max]="10" [(ngModel)]="settings.showAnswerDelay"
+                     (change)="onSettingChange()">
+            </div>
+            }
+          </div>
+
+          <!-- Кнопка старта -->
+          <div class="text-center">
+            <button class="btn btn-success btn-lg" (click)="onStart()">
+              Начать тренировку
+            </button>
+          </div>
+
+          <!-- Информация о сохранении -->
+          <div class="mt-3 text-center">
+            <small class="text-muted">
+              <i class="bi bi-info-circle"></i> Настройки автоматически сохраняются
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

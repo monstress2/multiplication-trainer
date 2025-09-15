@@ -1,0 +1,72 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h2 class="h4 mb-0">Результаты тренировки</h2>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-primary">{{ results.totalProblems }}</h3>
+                  <p class="mb-0">Всего задач</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-success">{{ results.correctAnswers }}</h3>
+                  <p class="mb-0">Правильно</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-danger">{{ results.incorrectAnswers }}</h3>
+                  <p class="mb-0">Неправильно</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-info">{{ results.accuracy | number:'1.0-0' }}%</h3>
+                  <p class="mb-0">Точность</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body text-center">
+                  <h4 class="h5">Общее время</h4>
+                  <p class="h3 text-primary">{{ formatTime(results.totalTime) }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body text-center">
+                  <h4 class="h5">Среднее время на задачу</h4>
+                  <p class="h3 text-primary">{{ results.averageTime | number:'1.1-1' }} сек</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <button class="btn btn-primary btn-lg me-3" (click)="restart()">
+              Новая тренировка
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
