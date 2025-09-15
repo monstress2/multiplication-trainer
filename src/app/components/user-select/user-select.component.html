@@ -1,0 +1,54 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h4 mb-0">Выбор пользователя</h2>
+        </div>
+        <div class="card-body">
+          <!-- Создание нового пользователя -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">Создать нового пользователя:</label>
+            <div class="input-group">
+              <input type="text" class="form-control" 
+                     [(ngModel)]="newUserName" 
+                     placeholder="Введите имя"
+                     (keydown.enter)="createUser()">
+              <button class="btn btn-success" (click)="createUser()" [disabled]="!newUserName.trim()">
+                <i class="bi bi-plus-circle"></i> Создать
+              </button>
+            </div>
+          </div>
+
+          <!-- Выбор существующего пользователя -->
+          <div *ngIf="users().length > 0">
+            <label class="form-label fw-bold">Выберите пользователя:</label>
+            <div class="list-group">
+              <button *ngFor="let user of users()" 
+                      [class]="'list-group-item list-group-item-action d-flex justify-content-between align-items-center ' + 
+                              (currentUser()?.id === user.id ? 'active' : '')"
+                      (click)="selectUser(user)">
+                <div>
+                  <span class="fw-bold">{{ user.name }}</span>
+                  <br>
+                  <small class="text-muted">Создан: {{ user.createdAt | date:'dd.MM.yyyy' }}</small>
+                </div>
+                <button class="btn btn-sm btn-outline-danger" 
+                        (click)="deleteUser(user, $event)"
+                        title="Удалить пользователя">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </button>
+            </div>
+          </div>
+
+          <!-- Сообщение если нет пользователей -->
+          <div *ngIf="users().length === 0" class="text-center text-muted py-4">
+            <i class="bi bi-people display-4 d-block mb-2"></i>
+            <p>Нет созданных пользователей</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

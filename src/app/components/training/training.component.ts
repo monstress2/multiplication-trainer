@@ -1,7 +1,5 @@
-import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef, inject, ChangeDetectorRef } from '@angular/core';
-import { Subscription, timer } from 'rxjs';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef, inject, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { TrainingService } from '../../services/training.service';
-import { MathProblem } from '../../models/training.models';
 import { TRAINING_CONFIG } from '../../config/training-config';
 import { ResultsComponent } from "../results/results.component";
 import { FormsModule } from '@angular/forms';
@@ -9,27 +7,29 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-training',
   templateUrl: './training.component.html',
-  styleUrls: ['./training.component.scss'],
+  styleUrl: './training.component.scss',
   imports: [ResultsComponent, FormsModule]
 })
 export class TrainingComponent implements OnInit, OnDestroy {
   @ViewChild('answerInput') answerInput!: ElementRef;
+  @Output() trainingFinished = new EventEmitter<void>();
+  
+  private trainingService = inject(TrainingService);
   private cdr = inject(ChangeDetectorRef);
   
-  currentProblem: MathProblem | null = null;
+  currentProblem = this.trainingService.getCurrentProblem();
   userAnswer: string = '';
   showFeedback: boolean = false;
   feedbackMessage: string = '';
   feedbackClass: string = '';
   showCorrectAnswer: boolean = false;
-  progress: { current: number; total: number } = { current: 0, total: 0 };
-  stats: { correct: number; incorrect: number } = { correct: 0, incorrect: 0 };
+  progress = this.trainingService.getProgress();
+  stats = { correct: 0, incorrect: 0 };
   
-  private subscriptions: Subscription[] = [];
   private answerTimeout: any;
+  private correctAnswerTimeout: any;
 
-  constructor(private trainingService: TrainingService) {}
- ngOnInit(): void {
+  ngOnInit(): void {
     this.trainingService.startTraining();
     this.updateData();
   }
@@ -37,21 +37,16 @@ export class TrainingComponent implements OnInit, OnDestroy {
   ngAfterViewInit(): void {
     this.focusInput();
   }
-  
+
   private updateData(): void {
     this.currentProblem = this.trainingService.getCurrentProblem();
-    this.updateProgress();
+    this.progress = this.trainingService.getProgress();
     this.updateStats();
     
     // Принудительное обновление представления
     this.cdr.detectChanges();
   }
 
-  blurInput(): void {
-    if (this.answerInput) {
-      this.answerInput.nativeElement.blur();
-    }
-  }
   focusInput(): void {
     if (this.answerInput) {
       this.answerInput.nativeElement.focus();
@@ -66,18 +61,23 @@ export class TrainingComponent implements OnInit, OnDestroy {
     }
   }
 
-  onInputChange(): void {
-    // Автопроверка при вводе нужного количества цифр
-    if (this.userAnswer.length >= 2) {
-      clearTimeout(this.answerTimeout);
-      this.answerTimeout = setTimeout(() => {
-        this.checkAnswer();
-      }, TRAINING_CONFIG.INPUT_DEBOUNCE_TIME);
+  // onInputChange(): void {
+  //   if (this.userAnswer?.length >= 2) {
+  //     clearTimeout(this.answerTimeout);
+  //     this.answerTimeout = setTimeout(() => {
+  //       this.checkAnswer();
+  //     }, TRAINING_CONFIG.INPUT_DEBOUNCE_TIME);
+  //   }
+  // }
+
+  blurInput(): void {
+    if (this.answerInput) {
+      this.answerInput.nativeElement.blur();
     }
   }
 
   checkAnswer(): void {
-    this.blurInput();
+   this.blurInput();
     console.log(this.userAnswer);
     if (!this.currentProblem || !this.userAnswer) return;
 
@@ -95,8 +95,28 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.showFeedbackMessage(`Неправильно! ❌ Правильный ответ: ${result.correctAnswer}`, 'danger');
     }
 
+    // Принудительное обновление перед таймаутом
     this.cdr.detectChanges();
+
+    // Переход к следующему вопросу с принудительным обновлением
+    // setTimeout(() => {
+    //   this.trainingService.nextProblem();
+    //   this.userAnswer = '';
+    //   this.showFeedback = false;
+    //   this.showCorrectAnswer = false;
+    //   this.updateData();
+    //   this.focusInput();
+
+    //   // Если тренировка завершена
+    //   if (!this.trainingService.getCurrentProblem()) {
+    //     this.trainingFinished.emit();
+    //   }
+    // }, TRAINING_CONFIG.NEXT_PROBLEM_DELAY);
+
+
+   this.cdr.detectChanges();
     // Переход к следующему вопросу
+
     setTimeout(() => {
       console.log("next");
       this.trainingService.nextProblem();
@@ -109,22 +129,22 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.showFeedback = false;
       this.showCorrectAnswer = false;
       this.cdr.detectChanges();
-    }, TRAINING_CONFIG.FEEDBACK_DISPLAY_TIME);
+      // Если тренировка завершена
+      if (!this.trainingService.getCurrentProblem()) {
+        this.trainingFinished.emit();
+      }
 
+    }, TRAINING_CONFIG.FEEDBACK_DISPLAY_TIME);
+    
   }
 
-showFeedbackMessage(message: string, type: string): void {
+  showFeedbackMessage(message: string, type: string): void {
     this.feedbackMessage = message;
     this.feedbackClass = `alert-${type}`;
     this.showFeedback = true;
     
     // Принудительное обновление для отображения feedback
     this.cdr.detectChanges();
-  }
-
-
-  updateProgress(): void {
-    this.progress = this.trainingService.getProgress();
   }
 
   updateStats(): void {
@@ -137,10 +157,11 @@ showFeedbackMessage(message: string, type: string): void {
 
   stopTraining(): void {
     this.trainingService.stopTraining();
+    this.trainingFinished.emit();
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
     clearTimeout(this.answerTimeout);
+    clearTimeout(this.correctAnswerTimeout);
   }
 }

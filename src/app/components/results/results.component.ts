@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { TrainingService } from '../../services/training.service';
 import { TrainingResults } from '../../models/training.models';
 import { DecimalPipe } from '@angular/common';
@@ -6,13 +6,14 @@ import { DecimalPipe } from '@angular/common';
 @Component({
   selector: 'app-results',
   templateUrl: './results.component.html',
-  styleUrls: ['./results.component.scss'],
+  styleUrl: './results.component.scss',
   imports: [DecimalPipe]
 })
 export class ResultsComponent implements OnInit {
+  @Output() backToSettings = new EventEmitter<void>();
+  
+  private trainingService = inject(TrainingService);
   results!: TrainingResults;
-
-  constructor(private trainingService: TrainingService) {}
 
   ngOnInit(): void {
     this.results = this.trainingService.getResults();
@@ -25,6 +26,6 @@ export class ResultsComponent implements OnInit {
   }
 
   restart(): void {
-    window.location.reload();
+    this.backToSettings.emit();
   }
 }

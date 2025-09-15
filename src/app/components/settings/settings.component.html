@@ -4,22 +4,22 @@
       <div class="card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h2 class="h4 mb-0">Настройки тренировки</h2>
-          <button class="btn btn-sm btn-outline-light" (click)="resetSettings()" title="Сбросить настройки">
-            <i class="bi bi-arrow-clockwise"></i> Сброс
-          </button>
+          <div>
+            <button class="btn btn-sm btn-outline-light me-2" (click)="resetSettings()" title="Сбросить настройки">
+              <i class="bi bi-arrow-clockwise"></i> Сброс
+            </button>
+          </div>
         </div>
         <div class="card-body">
           <!-- Выбор чисел -->
           <div class="mb-4">
             <label class="form-label fw-bold">Выберите числа для тренировки:</label>
             <div class="d-flex flex-wrap gap-2">
-              @for(num of numbers; track num){
-              <button 
+              <button *ngFor="let num of numbers" 
                       [class]="'btn ' + (isNumberSelected(num) ? 'btn-primary' : 'btn-outline-primary')"
                       (click)="toggleNumber(num)">
                 {{ num }}
               </button>
-            }
             </div>
             <div class="mt-2">
               <button class="btn btn-sm btn-outline-secondary me-2" (click)="selectAllNumbers()">
@@ -81,14 +81,12 @@
                 Показывать правильный ответ после задержки
               </label>
             </div>
-            @if(settings.showAnswerAfterDelay){
-            <div  class="mt-2">
+            <div *ngIf="settings.showAnswerAfterDelay" class="mt-2">
               <label class="form-label">Задержка (секунды):</label>
               <input type="number" class="form-control" 
                      [min]="1" [max]="10" [(ngModel)]="settings.showAnswerDelay"
                      (change)="onSettingChange()">
             </div>
-            }
           </div>
 
           <!-- Кнопка старта -->

@@ -1,0 +1,55 @@
+<div class="min-vh-100 bg-light">
+  <div class="container py-4">
+    <!-- Шапка -->
+    <header class="text-center mb-4">
+      <h1 class="display-4 text-primary">Тренажер таблицы умножения</h1>
+      <p class="lead">Развивайте навыки умножения с помощью интерактивного тренажера</p>
+      
+      <!-- Информация о текущем пользователе -->
+      <div *ngIf="currentUser()" class="d-flex justify-content-center align-items-center gap-3">
+        <span class="badge bg-secondary">
+          <i class="bi bi-person"></i> {{ currentUser()?.name }}
+        </span>
+        <button class="btn btn-sm btn-outline-primary" (click)="onShowStats()">
+          <i class="bi bi-bar-chart"></i> Статистика
+        </button>
+        <button class="btn btn-sm btn-outline-danger" (click)="onLogout()">
+          <i class="bi bi-box-arrow-right"></i> Выйти
+        </button>
+      </div>
+    </header>
+
+    <!-- Навигация -->
+    <nav *ngIf="currentView !== 'user-select' && currentView !== 'training' && currentView !== 'results'" class="mb-4">
+      <div class="d-flex justify-content-center gap-2">
+        <button class="btn btn-outline-primary" 
+                (click)="currentView = 'settings'"
+                [class.active]="currentView === 'settings'">
+          Настройки
+        </button>
+        <button class="btn btn-outline-primary" 
+                (click)="onShowStats()"
+                [class.active]="currentView === 'stats'">
+          Статистика
+        </button>
+      </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main>
+      <app-user-select *ngIf="currentView === 'user-select'" 
+                      (userSelected)="onUserSelected()"></app-user-select>
+      
+      <app-settings *ngIf="currentView === 'settings'" 
+                   (startTraining)="onStartTraining()"></app-settings>
+      
+      <app-training *ngIf="currentView === 'training'" 
+                   (trainingFinished)="onTrainingFinished()"></app-training>
+      
+      <app-results *ngIf="currentView === 'results'" 
+                  (backToSettings)="onBackToSettings()"></app-results>
+      
+      <app-stats *ngIf="currentView === 'stats'"></app-stats>
+    </main>
+  </div>
+</div>

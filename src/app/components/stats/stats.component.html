@@ -1,0 +1,103 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+          <h2 class="h4 mb-0">Статистика пользователя: {{ currentUser()?.name }}</h2>
+          <div>
+            <button class="btn btn-sm btn-outline-light me-2" (click)="clearDayStats()" 
+                    [disabled]="!selectedDate" title="Очистить статистику за день">
+              <i class="bi bi-calendar-x"></i> Очистить день
+            </button>
+            <button class="btn btn-sm btn-outline-light" (click)="clearStats()" 
+                    [disabled]="availableDates.length === 0" title="Очистить всю статистику">
+              <i class="bi bi-trash"></i> Очистить всё
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Выбор даты -->
+          <div class="mb-4" *ngIf="availableDates.length > 0">
+            <label class="form-label fw-bold">Выберите дату:</label>
+            <select class="form-select" [(ngModel)]="selectedDate" (change)="selectDate(selectedDate)">
+              <option *ngFor="let date of availableDates" [value]="date">
+                {{ formatDate(date) }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Общая статистика за день -->
+          <div *ngIf="stats" class="row text-center mb-4">
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-primary">{{ stats.totalProblems }}</h3>
+                  <p class="mb-0">Всего задач</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-success">{{ stats.correctAnswers }}</h3>
+                  <p class="mb-0">Правильно</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-danger">{{ stats.totalProblems - stats.correctAnswers }}</h3>
+                  <p class="mb-0">Неправильно</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="h2 text-info">{{ stats.accuracy | number:'1.1-1' }}%</h3>
+                  <p class="mb-0">Точность</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Детальная статистика по примерам -->
+          <div *ngIf="stats && stats.problems.length > 0">
+            <h4 class="mb-3">Статистика по примерам</h4>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Пример</th>
+                    <th>Попытки</th>
+                    <th>Правильно</th>
+                    <th>Точность</th>
+                    <th>Ср. время (сек)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let problem of stats.problems | orderBy: 'a': 'b'">
+                    <td class="fw-bold">{{ problem.a }} × {{ problem.b }}</td>
+                    <td>{{ problem.totalAttempts }}</td>
+                    <td>{{ problem.correctAttempts }}</td>
+                    <td>
+                      {{ (problem.correctAttempts / problem.totalAttempts * 100) | number:'1.1-1' }}%
+                    </td>
+                    <td>{{ problem.averageTime | number:'1.1-1' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Сообщение если нет статистики -->
+          <div *ngIf="availableDates.length === 0" class="text-center text-muted py-4">
+            <i class="bi bi-bar-chart display-4 d-block mb-2"></i>
+            <p>Нет данных статистики</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

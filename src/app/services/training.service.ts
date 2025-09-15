@@ -1,29 +1,30 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { TrainingSettings, MathProblem, TrainingResults } from '../models/training.models';
+import { UserService } from './user.service';
+import { StatsService } from './stats.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TrainingService {
-  private readonly STORAGE_KEY = 'multiplication_trainer_settings';
+  private userService = inject(UserService);
+  private statsService = inject(StatsService);
   
-  private settings = signal<TrainingSettings>(this.loadSettings());
   private currentProblem = signal<MathProblem | null>(null);
   private problems = signal<MathProblem[]>([]);
   private currentProblemIndex = signal(0);
   private trainingStartTime: Date | null = null;
 
-  private loadSettings(): TrainingSettings {
-    try {
-      const saved = localStorage.getItem(this.STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error('Error loading settings from localStorage:', error);
-    }
-    
-    // Настройки по умолчанию
+  getSettings(): TrainingSettings {
+    const currentUser = this.userService.currentUser();
+    return currentUser?.settings || this.getDefaultSettings();
+  }
+
+  updateSettings(settings: TrainingSettings): void {
+    this.userService.updateUserSettings(settings);
+  }
+
+  private getDefaultSettings(): TrainingSettings {
     return {
       selectedNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       timeMode: false,
@@ -35,40 +36,9 @@ export class TrainingService {
     };
   }
 
-  private saveSettings(settings: TrainingSettings): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
-    } catch (error) {
-      console.error('Error saving settings to localStorage:', error);
-    }
-  }
-
-  getSettings(): TrainingSettings {
-    return this.settings();
-  }
-
-  updateSettings(settings: TrainingSettings): void {
-    this.settings.set({ ...settings });
-    this.saveSettings(settings);
-  }
-
-  resetSettings(): void {
-    const defaultSettings: TrainingSettings = {
-      selectedNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      timeMode: false,
-      duration: 1,
-      problemCount: 10,
-      singleAttempt: false,
-      showAnswerAfterDelay: false,
-      showAnswerDelay: 3
-    };
-    
-    this.settings.set(defaultSettings);
-    this.saveSettings(defaultSettings);
-  }
-
   generateProblem(): MathProblem {
-    const selectedNumbers = this.settings().selectedNumbers;
+    const settings = this.getSettings();
+    const selectedNumbers = settings.selectedNumbers;
     const a = selectedNumbers[Math.floor(Math.random() * selectedNumbers.length)];
     const b = Math.floor(Math.random() * 10) + 1;
     return {
@@ -84,7 +54,8 @@ export class TrainingService {
     this.currentProblemIndex.set(0);
     this.trainingStartTime = new Date();
 
-    const totalProblems = this.settings().timeMode ? 100 : this.settings().problemCount;
+    const settings = this.getSettings();
+    const totalProblems = settings.timeMode ? 100 : settings.problemCount;
     const newProblems: MathProblem[] = [];
     
     for (let i = 0; i < totalProblems; i++) {
@@ -107,6 +78,11 @@ export class TrainingService {
     currentProblem.endTime = new Date();
     currentProblem.userAnswer = answer;
     currentProblem.isCorrect = answer === currentProblem.answer;
+    
+    // Рассчитываем время, затраченное на ответ
+    if (currentProblem.startTime && currentProblem.endTime) {
+      currentProblem.timeSpent = (currentProblem.endTime.getTime() - currentProblem.startTime.getTime()) / 1000;
+    }
 
     const updatedProblems = [...currentProblems];
     updatedProblems[currentIdx] = currentProblem;
@@ -126,18 +102,26 @@ export class TrainingService {
       this.currentProblemIndex.set(nextIndex);
       this.currentProblem.set(currentProblems[nextIndex]);
     } else {
-      this.currentProblem.set(null);
+      this.finishTraining();
     }
+  }
+
+  private finishTraining(): void {
+    const currentUser = this.userService.currentUser();
+    if (currentUser) {
+      // Сохраняем статистику
+      const completedProblems = this.problems().filter(p => p.endTime);
+      this.statsService.addTrainingResult(currentUser.id, completedProblems);
+    }
+    
+    this.currentProblem.set(null);
   }
 
   getResults(): TrainingResults {
     const completedProblems = this.problems().filter(p => p.endTime);
     const correctAnswers = completedProblems.filter(p => p.isCorrect).length;
     const totalTime = completedProblems.reduce((total, problem) => {
-      if (problem.startTime && problem.endTime) {
-        return total + (problem.endTime.getTime() - problem.startTime.getTime()) / 1000;
-      }
-      return total;
+      return total + (problem.timeSpent || 0);
     }, 0);
 
     return {
@@ -162,6 +146,6 @@ export class TrainingService {
   }
 
   stopTraining(): void {
-    this.currentProblem.set(null);
+    this.finishTraining();
   }
 }

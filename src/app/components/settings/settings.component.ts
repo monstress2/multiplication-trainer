@@ -1,18 +1,21 @@
 import { Component, EventEmitter, Output, OnInit, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TrainingSettings } from '../../models/training.models';
 import { TrainingService } from '../../services/training.service';
-import { FormsModule } from '@angular/forms';
+import { UserService } from '../../services/user.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
-  imports: [FormsModule]
+  imports: [FormsModule, CommonModule]
 })
 export class SettingsComponent implements OnInit {
-  @Output() startTraining = new EventEmitter<TrainingSettings>();
+  @Output() startTraining = new EventEmitter<void>();
 
   private trainingService = inject(TrainingService);
+  private userService = inject(UserService);
   
   numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   settings: TrainingSettings = {
@@ -61,9 +64,18 @@ export class SettingsComponent implements OnInit {
 
   resetSettings(): void {
     if (confirm('Вы уверены, что хотите сбросить настройки к значениям по умолчанию?')) {
-      this.trainingService.resetSettings();
-      const defaultSettings = this.trainingService.getSettings();
+      const defaultSettings: TrainingSettings = {
+        selectedNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        timeMode: false,
+        duration: 1,
+        problemCount: 10,
+        singleAttempt: false,
+        showAnswerAfterDelay: false,
+        showAnswerDelay: 3
+      };
+      
       this.settings = { ...defaultSettings };
+      this.saveSettings();
     }
   }
 
@@ -88,6 +100,6 @@ export class SettingsComponent implements OnInit {
     }
 
     this.saveSettings();
-    this.startTraining.emit({ ...this.settings });
+    this.startTraining.emit();
   }
 }
