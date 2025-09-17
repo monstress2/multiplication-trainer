@@ -84,7 +84,7 @@
             <div *ngIf="settings.showAnswerAfterDelay" class="mt-2">
               <label class="form-label">Задержка (секунды):</label>
               <input type="number" class="form-control" 
-                     [min]="1" [max]="10" [(ngModel)]="settings.showAnswerDelay"
+                     [min]="1" [(ngModel)]="settings.showAnswerDelay"
                      (change)="onSettingChange()">
             </div>
           </div>

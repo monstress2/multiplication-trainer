@@ -3,14 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
 import { StatsService } from '../../services/stats.service';
-import { DailyStats, UserStats } from '../../models/training.models';
-import { OrderByPipe } from "../../pipes/order-by.pipe";
+import { DailyStats, ProblemStat } from '../../models/training.models';
+import { OrderByPipe } from '../../pipes/order-by.pipe';
+
+interface SortConfig {
+  column: string;
+  direction: 'asc' | 'desc';
+}
 
 @Component({
   selector: 'app-stats',
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss',
-  imports: [CommonModule, FormsModule, OrderByPipe]
+  imports: [CommonModule, FormsModule]
 })
 export class StatsComponent implements OnInit {
   private userService = inject(UserService);
@@ -20,7 +25,10 @@ export class StatsComponent implements OnInit {
   availableDates: string[] = [];
   selectedDate: string = '';
   stats: DailyStats | null = null;
-  userStats: UserStats | null = null;
+  userStats: any = null;
+  
+  sortConfig: SortConfig = { column: '', direction: 'asc' };
+  sortedProblems: ProblemStat[] = [];
 
   ngOnInit(): void {
     this.loadStats();
@@ -42,6 +50,64 @@ export class StatsComponent implements OnInit {
   selectDate(date: string): void {
     this.selectedDate = date;
     this.stats = this.userStats?.dailyStats[date] || null;
+    this.sortedProblems = this.stats?.problems ? [...this.stats.problems] : [];
+    this.sortConfig = { column: '', direction: 'asc' };
+  }
+
+  sortTable(column: string): void {
+    if (this.sortConfig.column === column) {
+      this.sortConfig.direction = this.sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortConfig = { column, direction: 'asc' };
+    }
+
+    this.sortedProblems.sort((a, b) => {
+      let valueA: any, valueB: any;
+
+      switch (column) {
+        case 'problem':
+          valueA = `${a.a}x${a.b}`;
+          valueB = `${b.a}x${b.b}`;
+          break;
+        case 'attempts':
+          valueA = a.totalAttempts;
+          valueB = b.totalAttempts;
+          break;
+        case 'correct':
+          valueA = a.correctAttempts;
+          valueB = b.correctAttempts;
+          break;
+        case 'accuracy':
+          valueA = a.correctAttempts / a.totalAttempts;
+          valueB = b.correctAttempts / b.totalAttempts;
+          break;
+        case 'time':
+          valueA = a.averageTime;
+          valueB = b.averageTime;
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof valueA === 'string') {
+        return this.sortConfig.direction === 'asc' 
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      } else {
+        return this.sortConfig.direction === 'asc' 
+          ? valueA - valueB
+          : valueB - valueA;
+      }
+    });
+  }
+
+  getSortIcon(column: string): string {
+    if (this.sortConfig.column !== column) {
+      return 'bi bi-arrow-down-up';
+    }
+    return this.sortConfig.direction === 'asc' 
+      ? 'bi bi-arrow-up' 
+      : 'bi bi-arrow-down';
   }
 
   clearStats(): void {

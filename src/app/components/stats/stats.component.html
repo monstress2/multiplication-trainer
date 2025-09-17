@@ -1,6 +1,6 @@
 <div class="container mt-4">
   <div class="row justify-content-center">
-    <div class="col-md-10">
+    <div class="col-md-12">
       <div class="card">
         <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
           <h2 class="h4 mb-0">Статистика пользователя: {{ currentUser()?.name }}</h2>
@@ -63,21 +63,36 @@
           </div>
 
           <!-- Детальная статистика по примерам -->
-          <div *ngIf="stats && stats.problems.length > 0">
+          <div *ngIf="stats && sortedProblems.length > 0">
             <h4 class="mb-3">Статистика по примерам</h4>
             <div class="table-responsive">
               <table class="table table-striped table-hover">
                 <thead class="table-dark">
                   <tr>
-                    <th>Пример</th>
-                    <th>Попытки</th>
-                    <th>Правильно</th>
-                    <th>Точность</th>
-                    <th>Ср. время (сек)</th>
+                    <th (click)="sortTable('problem')" style="cursor: pointer;">
+                      Пример
+                      <i class="bi ms-1" [class]="getSortIcon('problem')"></i>
+                    </th>
+                    <th (click)="sortTable('attempts')" style="cursor: pointer;">
+                      Попытки
+                      <i class="bi ms-1" [class]="getSortIcon('attempts')"></i>
+                    </th>
+                    <th (click)="sortTable('correct')" style="cursor: pointer;">
+                      Правильно
+                      <i class="bi ms-1" [class]="getSortIcon('correct')"></i>
+                    </th>
+                    <th (click)="sortTable('accuracy')" style="cursor: pointer;">
+                      Точность
+                      <i class="bi ms-1" [class]="getSortIcon('accuracy')"></i>
+                    </th>
+                    <th (click)="sortTable('time')" style="cursor: pointer;">
+                      Ср. время (сек)
+                      <i class="bi ms-1" [class]="getSortIcon('time')"></i>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let problem of stats.problems | orderBy: 'a': 'b'">
+                  <tr *ngFor="let problem of sortedProblems">
                     <td class="fw-bold">{{ problem.a }} × {{ problem.b }}</td>
                     <td>{{ problem.totalAttempts }}</td>
                     <td>{{ problem.correctAttempts }}</td>
