@@ -286,8 +286,10 @@ export class TrainingComponent implements OnInit, OnDestroy {
   if (isNaN(answer)) return;
 
   this.attemptsCount++;
+  
+  const onlyCheck = this.isAnswerShown;
 
-  const result = this.trainingService.checkAnswer(answer);
+  const result = this.trainingService.checkAnswer(answer, onlyCheck);
   let feedbackDisplayTime;
   
   if (result.isCorrect) {
@@ -303,7 +305,9 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.stats.incorrect++;
       this.showFeedbackMessage('Неправильно! ❌', `${result.correctAnswer}`, 'danger');
       feedbackDisplayTime = TRAINING_CONFIG.SHOW_WRONG_ANSWER_DELAY;
-      
+      this.isAnswerShown = true;
+      this.showCorrectAnswer = true;
+
       // Если включен singleAttempt, переходим к следующему вопросу
       if (this.currentSettings.singleAttempt) {
         this.moveToNextProblem(feedbackDisplayTime);
@@ -314,7 +318,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
       }
     }
   }
-        if (!this.isAnswerShown){
+        if (!this.isAnswerShown || this.currentSettings.singleAttempt){
           setTimeout(() => {
             this.showFeedback = false;
             this.focusInput();

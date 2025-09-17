@@ -197,7 +197,7 @@ export class TrainingService {
   this.currentProblem.set(newProblems[0]);
 }
 
-  checkAnswer(answer: number): { isCorrect: boolean; correctAnswer: number } {
+  checkAnswer(answer: number, onlyCheck: boolean | undefined = undefined): { isCorrect: boolean; correctAnswer: number } {
   const currentIdx = this.currentProblemIndex();
   const currentProblems = this.problems();
   
@@ -207,9 +207,17 @@ export class TrainingService {
 
   const currentProblem = { ...currentProblems[currentIdx] };
   currentProblem.endTime = new Date();
-  currentProblem.userAnswer = isNaN(answer) ? undefined : answer; // Сохраняем undefined для автоматических ответов
-  currentProblem.isCorrect = !isNaN(answer) && answer === currentProblem.answer;
-  
+
+  const isCorrect = !isNaN(answer) && answer === currentProblem.answer;
+  if (!onlyCheck)
+  {
+    currentProblem.userAnswer = isNaN(answer) ? undefined : answer; // Сохраняем undefined для автоматических ответов
+    currentProblem.isCorrect = isCorrect;
+  }else{
+    currentProblem.userAnswer ??= undefined;
+    currentProblem.isCorrect ??= false;
+  }
+
   if (currentProblem.startTime && currentProblem.endTime) {
     currentProblem.timeSpent = (currentProblem.endTime.getTime() - currentProblem.startTime.getTime()) / 1000;
     
@@ -225,7 +233,7 @@ export class TrainingService {
   this.problems.set(updatedProblems);
 
   return {
-    isCorrect: currentProblem.isCorrect,
+    isCorrect: isCorrect,
     correctAnswer: currentProblem.answer
   };
 }
