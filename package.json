@@ -6,8 +6,11 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:gh-pages": "ng build --base-href "https://monstress2.github.io/multiplication-trainer/"",
+    "deploy:gh-pages": "npx angular-cli-ghpages --dir=dist/multiplication-trainer/browser/"
   },
+  
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,
