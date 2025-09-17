@@ -182,12 +182,11 @@ export class TrainingService {
   this.trainingStartTime = new Date();
 
   const settings = this.getSettings();
-  const totalProblems = settings.timeMode ? 100 : settings.problemCount;
+  const totalProblems = settings.timeMode ? 1000 : settings.problemCount; // Для timeMode генерируем много задач
   const newProblems: MathProblem[] = [];
   
   for (let i = 0; i < totalProblems; i++) {
     const problem = this.generateProblem();
-    // Устанавливаем startTime только для первой задачи
     if (i === 0) {
       problem.startTime = new Date();
     }
@@ -196,7 +195,7 @@ export class TrainingService {
 
   this.problems.set(newProblems);
   this.currentProblem.set(newProblems[0]);
-  }
+}
 
   checkAnswer(answer: number): { isCorrect: boolean; correctAnswer: number } {
   const currentIdx = this.currentProblemIndex();

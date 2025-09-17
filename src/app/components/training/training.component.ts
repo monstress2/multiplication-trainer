@@ -39,8 +39,18 @@ export class TrainingComponent implements OnInit, OnDestroy {
   private correctAnswerTimeout: any;
   currentSettings!: TrainingSettings;
 
+
+ // Таймер для timeMode
+  timeModeTimer: any;
+  timeRemaining: number = 0;
+  timeRemainingFormatted: string = '00:00';
+  isTimeMode: boolean = false;
+
+
   ngOnInit(): void {
     this.currentSettings = this.getSettings() || this.getDefaultSettings();
+    this.isTimeMode = this.currentSettings.timeMode;
+    
     this.trainingService.startTraining();
     this.updateData();
   
@@ -48,7 +58,51 @@ export class TrainingComponent implements OnInit, OnDestroy {
     if (this.currentSettings.showAnswerAfterDelay) {
       this.startAnswerTimer();
     }
+
+    // Запускаем таймер тренировки, если включен timeMode
+    if (this.isTimeMode) {
+      this.startTimeModeTimer();
+    }
   }
+
+  // Добавляем метод для запуска таймера timeMode
+  private startTimeModeTimer(): void {
+    this.timeRemaining = this.currentSettings.duration * 60; // конвертируем минуты в секунды
+    
+    this.timeModeTimer = setInterval(() => {
+      this.timeRemaining--;
+      this.updateTimeRemainingFormat();
+      
+      if (this.timeRemaining <= 0) {
+        this.stopTimeModeTimer();
+        this.finishTimeModeTraining();
+      }
+    }, 1000);
+  }
+
+  // Обновляем формат времени mm:ss
+  private updateTimeRemainingFormat(): void {
+    const minutes = Math.floor(this.timeRemaining / 60);
+    const seconds = this.timeRemaining % 60;
+    this.timeRemainingFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    this.cdr.detectChanges();
+  }
+
+  // Останавливаем таймер timeMode
+  private stopTimeModeTimer(): void {
+    if (this.timeModeTimer) {
+      clearInterval(this.timeModeTimer);
+      this.timeModeTimer = null;
+    }
+  }
+
+  // Завершаем тренировку по времени
+  private finishTimeModeTraining(): void {
+    this.stopTimeModeTimer();
+    this.trainingService.stopTraining();
+    this.trainingFinished.emit();
+  }
+
 
   ngAfterViewInit(): void {
     this.focusInput();
@@ -388,14 +442,16 @@ private moveToNextProblem(delay: number): void {
     };
   }
 
-  stopTraining(): void {
-    this.trainingService.stopTraining();
-    this.trainingFinished.emit();
-  }
+stopTraining(): void {
+  this.stopTimeModeTimer(); // Останавливаем таймер времени
+  this.trainingService.stopTraining();
+  this.trainingFinished.emit();
+}
 
-  ngOnDestroy(): void {
+ngOnDestroy(): void {
     clearTimeout(this.answerTimeout);
     clearTimeout(this.correctAnswerTimeout);
     clearTimeout(this.showAnswerTimeout);
+    this.stopTimeModeTimer(); // Останавливаем таймер при уничтожении компонента
   }
 }
