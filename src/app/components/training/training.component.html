@@ -7,6 +7,13 @@
       <div class="text-muted">Задача {{ progress.current }} из {{ progress.total }}</div>
     </div>
   </div>
+  <!-- Кнопка остановки -->
+  <!-- <div class="position-fixed top-0 end-0 m-3"> -->
+  <div class="row end-0 m-3">
+    <button class="btn btn-outline-danger btn-sm" (click)="stopTraining()">
+      Завершить
+    </button>
+  </div>
 
   <!-- Основной контент -->
   <div class="row flex-grow-1 align-items-center">
@@ -70,12 +77,6 @@
     <div style="font-size: 3rem;">{{ feedbackMessage }}</div>
   </div>
    }
-  <!-- Кнопка остановки -->
-  <div class="position-fixed top-0 end-0 m-3">
-    <button class="btn btn-outline-danger btn-sm" (click)="stopTraining()">
-      Завершить
-    </button>
-  </div>
 </div>
 }
 @else{
